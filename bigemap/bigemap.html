@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<!-- 添加注释代码 -->
+
+<head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link href='http://bigemap.com:9000/bigemap-gl.js/v1.1.0/Widgets/widgets.css' rel='stylesheet' />
+    <script src='http://bigemap.com:9000/bigemap-gl.js/v1.1.0/bigemap-gl.js'></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+    <title>part_test</title>
+</head>
+
+<body>
+    <div id='container'></div>
+    <div id="mouse_state" style="position:absolute;z-index:9999;top:1px;left:1px;background-color:white"></div>
+    <script>
+        bmgl.Config.HTTP_URL = 'http://bigemap.com:9000';
+        var viewer = new bmgl.Viewer('container', { mapId: 'bigemap.amap-satellite' });
+        // viewer.camera.setView( {
+        // destination  : bmgl.Cartesian3.fromDegrees( 110.20, 34.55, 3000000 )
+        //     } );
+        var scene = viewer.scene;
+        var handler = new bmgl.ScreenSpaceEventHandler(scene.canvas);
+        var ellipsoid = scene.globe.ellipsoid; //得到当前三维场景的椭球体
+
+        var longitudeString = null;
+        var latitudeString = null;
+        var height = null;
+        var cartesian = null;
+        var mouse_state = document.getElementById("mouse_state");//显示状态信息
+        //一 鼠标MOUSE_MOVE
+        handler.setInputAction(function (movement) {
+            //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+            cartesian = viewer.camera.pickEllipsoid(movement.endPosition, ellipsoid);
+            if (cartesian) {
+                //将笛卡尔坐标转换为地理坐标
+                var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+                //将弧度转为度的十进制度表示
+                longitudeString = bmgl.Math.toDegrees(cartographic.longitude).toFixed(7);
+                latitudeString = bmgl.Math.toDegrees(cartographic.latitude).toFixed(7);
+                //获取相机高度
+                height = Math.ceil(viewer.camera.positionCartographic.height).toFixed(3);
+                mouse_state.innerText = '移动：(' + longitudeString + ', ' + latitudeString + "," + height + ')';
+            } else {
+                mouse_state.innerText = "";
+            }
+        }, bmgl.ScreenSpaceEventType.MOUSE_MOVE);
+        // viewer.camera.setView({// 设置摄像机开始视角
+        //     destination: bmgl.Cartesian3.fromDegrees(110.20, 34.55, 3000000)
+        // });
+        viewer.entities.add({
+            //show: false,
+            id: '',
+            description: "",
+            position: bmgl.Cartesian3.fromDegrees(104.06, 30.67, 0),
+            label: '111',
+            point: {
+
+                pixelSize: 40,
+                color: bmgl.Color.YELLOW
+            }
+        });
+        //viewer.flyTo(viewer.entities);
+
+    </script>
+</body>
+
+</html>
